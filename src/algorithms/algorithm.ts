@@ -1,4 +1,4 @@
-import type { AlgorithmPolicy, QuotaState } from '../models';
+import type { AlgorithmPolicy, QuotaState } from "../models";
 
 export interface QuotaPreview {
   allowed: boolean;
@@ -10,7 +10,11 @@ export interface QuotaPreview {
 }
 
 export interface Algorithm {
-  preview(policy: AlgorithmPolicy, state: QuotaState | undefined,
-    cost: number, nowMs: number): QuotaPreview;
+  preview(
+    policy: AlgorithmPolicy,
+    state: QuotaState | undefined,
+    cost: number,
+    nowMs: number,
+  ): QuotaPreview;
   canForget(policy: AlgorithmPolicy, state: QuotaState, nowMs: number): boolean;
 }

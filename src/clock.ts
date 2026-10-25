@@ -4,6 +4,10 @@ export interface Clock {
 }
 
 export class SystemClock implements Clock {
-  monotonicMs(): number { return performance.now(); }
-  unixMs(): number { return Date.now(); }
+  monotonicMs(): number {
+    return performance.now();
+  }
+  unixMs(): number {
+    return Date.now();
+  }
 }

@@ -15,13 +15,24 @@ npm start
 
 The server listens on `127.0.0.1:3000` by default. `PORT` and `HOST` override this. The initial implementation was tested on Node 25.2.0. Source targets Node 20+, while the supplied container uses Node 24; those other runtimes have not been executed here.
 
+## Formatting
+
+Run `npm run format` to format source, tests, scripts, JSON, YAML and Markdown files,
+or `npm run format:check` to check formatting without changing files.
+Prettier uses two-space indentation, double quotes, semicolons and a 100-character
+line width. It collapses repeated blank lines while retaining single blank lines
+between logical sections. Configuration is in `.prettierrc.json`; editor whitespace
+settings are in `.editorconfig`. Generated output, dependencies, the npm lockfile
+and ignored reference/design documents in `docs/` are excluded. Dockerfile syntax
+is not handled by Prettier. Use your editor's Prettier integration for format-on-save.
+
 ## Startup configuration
 
 Edit `src/config.ts`, then restart. It creates two independent tenants: `org-acme-prod` and `org-beta-prod`. Each has:
 
-| Policy | Algorithm | Quota |
-|---|---|---|
-| `tenant` | Token bucket | 100 tokens, refill 10/second |
+| Policy   | Algorithm          | Quota                           |
+| -------- | ------------------ | ------------------------------- |
+| `tenant` | Token bucket       | 100 tokens, refill 10/second    |
 | `client` | Sliding window log | 10 units per rolling 60 seconds |
 
 Client identity uses trusted user ID when present, otherwise IP (IPv6 /64). Each tenant tracks at most 1,000 client policy keys. A request must pass all matching policies before any quota is consumed. Costs are positive integers, default 1; a cost larger than any applicable capacity is a 400 validation error.
@@ -62,14 +73,16 @@ The check/reset/metrics API is an internal demonstration service without authent
 `createRateLimitMiddleware` runs after your existing authentication and accepts a synchronous callback that builds trusted context. For example:
 
 ```ts
-app.use(createRateLimitMiddleware(limiter, req => ({
-  tenantId: 'org-acme-prod', // Obtain from your authenticated tenant mapping.
-  clientIp: resolveClientIp(req.socket.remoteAddress!, req.get('x-forwarded-for'), []),
-  route: req.path,
-  method: req.method,
-  headers: req.headers,
-  // userId: obtain from your authentication layer, never a raw client header.
-})));
+app.use(
+  createRateLimitMiddleware(limiter, (req) => ({
+    tenantId: "org-acme-prod", // Obtain from your authenticated tenant mapping.
+    clientIp: resolveClientIp(req.socket.remoteAddress!, req.get("x-forwarded-for"), []),
+    route: req.path,
+    method: req.method,
+    headers: req.headers,
+    // userId: obtain from your authentication layer, never a raw client header.
+  })),
+);
 ```
 
 Import these helpers from `src/http/middleware.ts` and `src/extractors/proxy.ts`. Empty trusted CIDRs ignores all forwarded headers. Configure only proxies you control; chain resolution walks right-to-left to the first untrusted hop. For route quotas, supply a stable route template where possible instead of a high-cardinality raw URL. The 256-character key limit and tracking cap bound stored key data.

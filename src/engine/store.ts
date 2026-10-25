@@ -1,4 +1,4 @@
-import type { RateLimitPolicy, QuotaState } from '../models';
+import type { RateLimitPolicy, QuotaState } from "../models";
 
 export interface Entry {
   policy: RateLimitPolicy;
@@ -24,17 +24,20 @@ export class TenantStore {
 
   clear(): number {
     const count = this.clients.size + this.aggregates.size;
-    this.clients.clear(); this.aggregates.clear(); this.cursor = undefined;
+    this.clients.clear();
+    this.aggregates.clear();
+    this.cursor = undefined;
     return count;
   }
 
   estimatedBytes(): number {
     // Planning estimate, not V8 heap measurement: UTF-16 key + entry + event objects.
     let bytes = 256;
-    for (const map of [this.aggregates, this.clients]) for (const [key, entry] of map) {
-      bytes += 256 + key.length * 2;
-      if (entry.state.algorithm === 'sliding-window') bytes += 64 * entry.state.events.length;
-    }
+    for (const map of [this.aggregates, this.clients])
+      for (const [key, entry] of map) {
+        bytes += 256 + key.length * 2;
+        if (entry.state.algorithm === "sliding-window") bytes += 64 * entry.state.events.length;
+      }
     return bytes;
   }
 }
